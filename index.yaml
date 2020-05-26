@@ -12,8 +12,7 @@ pipelines:
   - id: douyin/msg/send-msg
     name: 抖音私信回复
     description: 抖音评论私信回复
-    app: 抖音短视频
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
-    code: "toast('哈哈哈')"
+    code: "toast('待开发')"
     path: scripts/douyin-private-msg.js
