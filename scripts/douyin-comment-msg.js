@@ -6,21 +6,31 @@ let args = {
     "msgs":["Hello, 你好"],
     "username":"zhouhui",
     "token":"b639cb16-1592-4490-91ce-ce38ce1e8bd7",
-    "server":"http://www.hzjx.tech"
+    "server":"http://122.112.152.5"
 }
 
 // 需要优化
 function audit() {
     // 检查是否具备次数
     let res;
+    let str;
     let r;
     try {
-        res = http.post(args["server"] + "/" + "/counter", {username: args["username"], "password": args["password"]});
-        let r = JSON.parse(res.body.string());
+        res = http.post(
+            args["server"] + "/counter",
+            {
+                username: args["username"],
+                token: args["token"]
+            }
+        );
+        str = res.body.string();
+        console.log(args["server"] + "/counter")
+        console.log("username="+args["username"]+"&token="+args["token"]);
+        console.log(str);
+        r = JSON.parse(str);
         if ( r.status === "200" ) return true;
     } catch(e) {
-        toast(res.body.string());
-        sleep(1000);
+        sleep(2000);
         return false;
     }
     toast(r.msg);
