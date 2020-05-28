@@ -1,15 +1,17 @@
 
 let args = {
     "keywords":"",
-    "wait":{"start":25.0,"end":75.0},
+    "wait":{"start":2,"end":4},
     "debug":true,
     "msgs":["Hello, 你好"],
+    "max": 100,
     "username":"zhouhui",
     "token":"b639cb16-1592-4490-91ce-ce38ce1e8bd7",
     "server":"http://122.112.152.5"
 }
 
-// 需要优化
+// 权限判断, TODO
+// - 由上层注入此逻辑
 function audit() {
     // 检查是否具备次数
     let res;
@@ -24,26 +26,19 @@ function audit() {
             }
         );
         str = res.body.string();
-        console.log(args["server"] + "/counter")
-        console.log("username="+args["username"]+"&token="+args["token"]);
         console.log(str);
         r = JSON.parse(str);
         if ( r.status === "200" ) return true;
+        toast(r.msg);
     } catch(e) {
-        sleep(2000);
+        console.log(e);
         return false;
     }
-    toast(r.msg);
     sleep(1000);
 }
 
-function main(_) {
-    args = _;
-    process(args);
-}
-
 // 检查是否在目标程序内
-function inApp() {
+function inapp() {
     // 检查当前包名
     let curr = currentPackage();
 
@@ -56,31 +51,116 @@ function inApp() {
     }
 }
 
+// TODO: 缓存!!!
+
+// 评论按钮:
+// - id ("a9l").find() a9w
+// - 截图
+// - 逻辑规则id
+function findCommentButton() {
+    toast("查询评论按钮~");
+    let countRegex = /^\d+(\.\d+)?[wk]?$/;
+
+    // 找出所有的textview，并用数量的正则过滤
+    let btns = className("TextView").find().filter(function(e) {
+        return countRegex.test(e.text())
+    });
+
+    // 找出评论的按钮:
+    // 0 1 2, 3 4 5
+    // 0 1 2, 3 4 5, 5 7 8
+    switch (btns.length) {
+        case 6:  // 最后一个视频判断不了
+            return btns[1];
+        case 9:
+            return btns[4];
+        default:
+            return null;
+    }
+}
+
+// 是否在评论列表页
+function isCommentList() {
+    let regex = /^\d+(\.\d+)?[wk]? 条评论/
+    let tmp = className("TextView").find().filter(function(e) {
+        return regex.test(e.text())
+    });
+
+    return tmp.length === 1;
+}
+
+// 查找所有评论
+// - id adc
+// - 布局逻辑 LinearLayout
+function findComments() {
+    let comments = className("LinearLayout").find().filter(function(e) {
+        let ch = e.children();
+        return ch.length === 1 && ch[0].className().indexOf("ViewGroup") > 0
+    }).map(function(e) { return e })
+    return comments;
+}
+
+// 解析评论， 返回作者和内容
+// 第 0 个 child(ViewGroup)
+function parseComment(e) {
+    let txts = e.find(className("TextView"));
+
+    if (txts.length<2) {
+        // TODO: 为什么失败
+        console.log("解析评论失败~");
+        return null;
+    }
+
+    return {
+        author: txts[0].text(),
+        comment: txts[1].text(),
+        count: txts.length>2?txts[2].text():0,
+    }
+}
+
+// 是否滑动到了底部
+function isScrollEnd() {
+    let txts = className("TextView").find();
+    return txts[txts.length - 4] && txts[txts.length - 4].text().indexOf("没有更多") >= 0
+}
+
 // 主要处理过程
 function process({max, msgs, keywords, debug}) {
 
-    max = 200;
-
-    keywords = keywords.split(',').filter((v) => v)
-
+    // 判断消息内容
     if (!msgs || msgs.length === 0) {
         toast("未设置发送内容");
         return;
     }
+
+    // 默认最大次数
+    max = 200;
+
+    // 处理关键词
+    keywords = keywords.split(',').filter((v) => v)
 
     // 确保在抖音中
     let curr = currentPackage();
     if (curr.indexOf("ugc.aweme") < 0) {
          toast("不在抖音程序内");
          return;
-     }
+    }
 
-    // 点击评论按钮, 没有就算了, 这里需要指定的版本, a9w
-    let btns = id("a9l").find()
-    btns[btns.length===2?0:1].click() // 最后一个视频判断不了
-    sleep(2000);
+    // 如果不在评论列表页，点击按钮
+    if (!isCommentList()) {
+        let commentBtn = findCommentButton();
+        if (!commentBtn) {
+            toast("查找评论按钮失败~");
+            return;
+        }
+
+        // 点击评论按钮
+        commentBtn.click();
+        sleep(2000);
+    }
 
 
+    // 计数
     let count = 0;
 
     // 记录评论发出去的人，防止重复发送
@@ -89,51 +169,32 @@ function process({max, msgs, keywords, debug}) {
     // 一直滚动屏幕， 一旦到达就退出
     while(max > count) {
 
-        // 找到所有
-        // 滚动常按评论, adc, 这里需要指定的版本,
-        let cmt = id("adc").find();
+        // 找到所有评论
+        let cmt = findComments();
 
         toast("共:" + cmt.length + "个评论")
         console.log("共:" + cmt.length + "个评论")
 
         for (let i=0; i<cmt.length; i++) {
             let item = cmt[i];
-            console.log("=>" + item.id())
-
-            if (item.parent() && item.parent().id().indexOf("e6o") < 0) {
-                // 过滤其他的,由于高精度导致的错误
-                console.log("parent =>" + item.parent().id())
-                continue
-            }
 
             if (count >= max) {
                 console.log("发送数量达总量:"+count);
                 break;
             }
 
-            // sleep(2000);
-
-            // 自己级别评论卡住
-
-            // 过滤暱称已经在发送列表中的
-            // console.log("查找作者和消息内容...")
-            let author = item.children().findOne(id("title")); // 找到暱称
-            let content = item.children().findOne(id("a2o")); // 找到回复的文本
-            // console.log("查找完成")
-
-
-            if (!author || !content) {
-                toast("作者或内容为空." + item.text());
-                console.log("作者或内容为空.")
+            // 解析出作者和评论内容
+            let x = parseComment(item)
+            if (!x) {
+                toast("评论解析错误~");
                 continue
             }
 
+            let { author, comment } = x
 
-            author = author.text();
-            content = content.text();
+            console.log(author + "说:" + comment)
 
-            console.log(author + "说:" + content)
-
+            // 检查是否已经发送过了
             if (_sended.indexOf(author) > 0) {
                 // 在已发送列表
                 console.log(author+"已经发送过了");
@@ -144,7 +205,7 @@ function process({max, msgs, keywords, debug}) {
             }
 
             // 判断是否达到限制
-            if (!audit()) {
+            if (!debug && !audit()) {
                 toast("使用达到限制");
                 return;
             }
@@ -154,14 +215,14 @@ function process({max, msgs, keywords, debug}) {
 
             let matched = true;
 
-            console.log("检查关键词:"+keywords)
+            console.log("检查关键词:" + keywords)
             // 过滤内容不符合关键词的
             if (keywords && keywords.length > 0) {
                 matched = false;
                 // 或的关系
                 for (let i = 0; i < keywords.length; i ++) {
                     // 有任意一个符合条件就可以去发送
-                    matched = content.indexOf(keywords[i]) > 0;
+                    matched = comment.indexOf(keywords[i]) > 0;
                     if (matched) break;
                 }
             }
@@ -191,6 +252,15 @@ function process({max, msgs, keywords, debug}) {
         }
 
         if (count <= max ) {
+
+            // TODO: 滚动到达底部判断
+            if (isScrollEnd()) {
+                console.log("已经划到了底部~")
+                toast("已经划到了底部~")
+                sleep(2000);
+                break;
+            }
+
             // 向下滚动屏幕
             let r = swipe(200, 1000, 430, 300, 1000);
             if (!r) {
@@ -207,10 +277,12 @@ function process({max, msgs, keywords, debug}) {
     console.log("执行完成.")
 }
 
+// 获取随机整数
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
+// 发送消息
 function send({msg, debug}) {
     // 查找 私信回复,并点击
     text("私信回复").findOne().click();
@@ -232,3 +304,13 @@ function send({msg, debug}) {
         // toast("消息发送成功");
     }
 }
+
+// 入口函数
+function main(_) {
+    args = _;
+    process(args);
+}
+
+
+// 调试
+main(args);
