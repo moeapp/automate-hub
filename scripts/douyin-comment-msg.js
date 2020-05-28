@@ -310,7 +310,3 @@ function main(_) {
     args = _;
     process(args);
 }
-
-
-// 调试
-main(args);
