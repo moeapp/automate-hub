@@ -134,7 +134,7 @@ function process({max, msgs, keywords, debug}) {
     }
 
     // 默认最大次数
-    max = 200;
+    if (!max) max = 200;
 
     // 处理关键词
     keywords = keywords.split(',').filter((v) => v)
