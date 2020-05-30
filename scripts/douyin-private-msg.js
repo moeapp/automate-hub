@@ -247,6 +247,7 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
             // 判断是否达到限制
             if (!debug && !audit()) {
                 toast("使用达到限制");
+                sleep(1000);
                 max = 0; // 需要终止整个循环
                 // 返回列表
                 return;
