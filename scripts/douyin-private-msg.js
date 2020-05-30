@@ -5,8 +5,8 @@ let args = {
     "debug":true,
     "msgs":["Hello, 你好"],
     "max": 100,
-    "username":"zhouhui",
-    "token":"b639cb16-1592-4490-91ce-ce38ce1e8bd7",
+    "username":"luopeng",
+    "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5",
     "onlyUnread": false,
 }
@@ -30,6 +30,7 @@ function audit() {
         console.log(str);
         r = JSON.parse(str);
         if ( r.status === "200" ) return true;
+        console.log(r.msg);
         toast(r.msg);
     } catch(e) {
         console.log(e);
