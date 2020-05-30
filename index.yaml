@@ -11,6 +11,7 @@ pipelines:
     main: main # 默认
   - id: null # douyin/msg/send-msg
     name: 抖音私信回复
+    app: 抖音短视频
     description: 抖音评论私信回复
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
