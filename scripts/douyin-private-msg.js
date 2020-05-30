@@ -32,11 +32,13 @@ function audit() {
         if ( r.status === "200" ) return true;
         console.log(r.msg);
         toast(r.msg);
+        sleep(2000);
     } catch(e) {
         console.log(e);
+        toast(e);
+        sleep(2000);
         return false;
     }
-    sleep(1000);
 }
 
 // 是否在私信Tab
