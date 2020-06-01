@@ -53,7 +53,7 @@ function getMessageCount() {
     let tab = tabhost.children()[0];
     let bar = tab.children()[tab.children().length - 1]; // 有些tab会中间多一个，一般都是2个，所以用这个方式来取
     let items = bar.find(className("FrameLayout"));
-    let msg = items[4]; // 第3个消息 // TODO: 为什么是第4个没整明白
+    let msg = items[4] || items[3]; // 第3个消息 // TODO: 为什么是第4个没整明白
 
     let txts = msg.find(className("TextView"));
 
