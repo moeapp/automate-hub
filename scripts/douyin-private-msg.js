@@ -50,10 +50,15 @@ function isMessageTab() {
 // TabHost > FrameLayout > FrameLayout[1] > LinearLayout > FrameLayout[3]
 function getMessageCount() {
     let tabhost = className("TabHost").findOne();
-    let tab = tabhost.children()[0];
-    let bar = tab.children()[tab.children().length - 1]; // 有些tab会中间多一个，一般都是2个，所以用这个方式来取
-    let items = bar.find(className("FrameLayout"));
-    let msg = items[4]; // 第3个消息 // TODO: 为什么是第4个没整明白
+    // let tab = tabhost.children()[0];
+    // let bar = tab.children()[tab.children().length - 1]; // 有些tab会中间多一个，一般都是2个，所以用这个方式来取
+    // let items = bar.find(className("FrameLayout"));
+    // let msg = items[4]; // 第3个消息 // TODO: 为什么是第4个没整明白
+
+    let mt = tabhost.find(className("TextView")).filter((e) => e.text() == "消息").filter((e) => e.parent().className().indexOf("RelativeLayout") > 0)
+    console.log("可能为消息的按钮有", mt.length, "个")
+    if (mt.length === 0) return null
+    let msg = mt[0].parent().parent().parent()
 
     let txts = msg.find(className("TextView"));
 
@@ -71,11 +76,8 @@ function xx(e, prefix) {
 function findMessages() {
 
     let tabhost = className("TabHost").findOne();
-    let tab = tabhost.children()[0];
 
-    let body = tab.children()[0];
-
-    let container = body.findOne(className("android.support.v7.widget.RecyclerView")); // ViewPager
+    let container = tabhost.findOne(className("android.support.v7.widget.RecyclerView")); // ViewPager
 
     let items = container.children();
 
@@ -238,7 +240,7 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
     
         records.forEach(function(e) {
             // 检查是否已经发送过了
-            if (_sended.indexOf(e.nickname) > 0) {
+            if (_sended.indexOf(e.nickname) >= 0) {
                 // 在已发送列表
                 console.log(e.nickname+"已经发送过了");
                 return;
@@ -349,7 +351,7 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
         // 还有更多内容就向下滚动，向下滚动
         if (totalCount <= max ) {
             // 向下滚动屏幕
-            let r = swipe(200, 1000, 430, 300, 1000);
+            let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
                 toast("向下滚动失败");
                 console.log("向下滚动失败.")

@@ -58,7 +58,26 @@ function inapp() {
 // - 截图
 // - 逻辑规则id
 function findCommentButton() {
-    toast("查询评论按钮~");
+
+    toast("查询评论按钮~")
+
+    let imgs = []
+
+    let view = className("android.support.v4.view.ViewPager").findOne()
+
+    if (view) console.log("==> 找到 ViewPager =>", view.id())
+    // 找出所有的图片
+    if (view) imgs = view.find(className("ImageView"))
+
+    for (let i=0; i<imgs.length; i++) {
+        let desc = imgs[i].desc()
+        if (desc && desc.indexOf("评论") === 0) {
+            return imgs[i].parent()
+        }
+    }
+
+    return null
+
     let countRegex = /^\d+(\.\d+)?[wk]?$/;
 
     // 找出所有的textview，并用数量的正则过滤
@@ -69,6 +88,11 @@ function findCommentButton() {
     // 找出评论的按钮:
     // 0 1 2, 3 4 5
     // 0 1 2, 3 4 5, 5 7 8
+    toast("查询评论按钮~"+btns.length);
+    btns.forEach((e) => {
+        console.log("==>", e.text(), e.desc(), e.className(), e.id())
+    })
+
     switch (btns.length) {
         case 6:  // 最后一个视频判断不了
             return btns[1];
@@ -195,7 +219,7 @@ function process({max, msgs, keywords, debug}) {
             console.log(author + "说:" + comment)
 
             // 检查是否已经发送过了
-            if (_sended.indexOf(author) > 0) {
+            if (_sended.indexOf(author) >= 0) {
                 // 在已发送列表
                 console.log(author+"已经发送过了");
                 continue
@@ -262,7 +286,7 @@ function process({max, msgs, keywords, debug}) {
             }
 
             // 向下滚动屏幕
-            let r = swipe(200, 1000, 430, 300, 1000);
+            let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
                 toast("向下滚动失败");
                 console.log("向下滚动失败.")
@@ -270,7 +294,6 @@ function process({max, msgs, keywords, debug}) {
                 break;
             }
         }
-
     }
 
     toast("执行完成");
