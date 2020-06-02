@@ -50,6 +50,7 @@ function isMessageTab() {
 // TabHost > FrameLayout > FrameLayout[1] > LinearLayout > FrameLayout[3]
 function getMessageCount() {
     let tabhost = className("TabHost").findOne();
+<<<<<<< HEAD
     // let tab = tabhost.children()[0];
     // let bar = tab.children()[tab.children().length - 1]; // 有些tab会中间多一个，一般都是2个，所以用这个方式来取
     // let items = bar.find(className("FrameLayout"));
@@ -59,6 +60,12 @@ function getMessageCount() {
     console.log("可能为消息的按钮有", mt.length, "个")
     if (mt.length === 0) return null
     let msg = mt[0].parent().parent().parent()
+=======
+    let tab = tabhost.children()[0];
+    let bar = tab.children()[tab.children().length - 1]; // 有些tab会中间多一个，一般都是2个，所以用这个方式来取
+    let items = bar.find(className("FrameLayout"));
+    let msg = items[4] || items[3]; // 第3个消息 // TODO: 为什么是第4个没整明白
+>>>>>>> f0d4ae6e584fa5dfbe24197b6832707a73634b49
 
     let txts = msg.find(className("TextView"));
 
