@@ -207,6 +207,14 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
          return;
     }
 
+    // 判断是否是陌生人消息
+    if (text("一键已读").findOne()) {
+        processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
+        toast("陌生人消息全部获取完成");
+        sleep(1000);
+        return;
+    }
+
     // 获取消息节点和当前具备的新消息数量
     let { element, count, maxTop } = getMessageCount();
 
@@ -252,10 +260,7 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
 
             if (e.nickname === "陌生人消息") {
                 // TODO:
-                click(centerX, centerY);
-                sleep(1000);
-                totalCount += processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
-                back();
+                toast("暂不支持~请先进入陌生人消息再启动")
                 sleep(1000);
                 return
             }
@@ -292,7 +297,7 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
             _sended[e.nickname] = true;
 
             // 读取出所有消息
-            let rmsgs = parseMessages();
+            let rmsgs = parseMessages().filter((e) => e);
 
             if (rmsgs.length === 0) {
                 toast("该用户未发送任何消息");
