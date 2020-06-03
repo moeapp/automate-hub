@@ -252,7 +252,7 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
 
             if (e.nickname === "陌生人消息") {
                 // TODO:
-                e.element.click();
+                click(centerX, centerY);
                 sleep(1000);
                 totalCount += processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
                 back();
