@@ -46,6 +46,8 @@ function isMessageTab() {
     // 检查是否存在私信
 }
 
+// Tab栏的高度
+
 // 有新消息: 返回消息数量
 // TabHost > FrameLayout > FrameLayout[1] > LinearLayout > FrameLayout[3]
 function getMessageCount() {
@@ -55,14 +57,15 @@ function getMessageCount() {
     // let items = bar.find(className("FrameLayout"));
     // let msg = items[4]; // 第3个消息 // TODO: 为什么是第4个没整明白
 
-    let mt = tabhost.find(className("TextView")).filter((e) => e.text() == "消息").filter((e) => e.parent().className().indexOf("RelativeLayout") > 0)
+    // .filter((e) => e.text() == "消息")
+    let mt = tabhost.find(className("TextView").text("消息")).filter((e) => e.parent().className().indexOf("RelativeLayout") > 0)
     console.log("可能为消息的按钮有", mt.length, "个")
     if (mt.length === 0) return null
     let msg = mt[0].parent().parent().parent()
 
     let txts = msg.find(className("TextView"));
 
-    return { element: msg, count: txts.length > 1 ? parseInt(txts[1].text() || 0) : 0 }
+    return { element: msg, count: txts.length > 1 ? parseInt(txts[1].text() || 0) : 0, maxTop: msg.bounds().top }
 }
 
 function xx(e, prefix) {
@@ -86,6 +89,7 @@ function findMessages() {
     
     // 1. 过滤非个人私信
     let records = items.slice(0, items.length - (hasMore ? 0 : 1)).map(function(e) {
+        let h = e.children()[0]; // 头像
         let m = e.children()[1]; // 暱称和内容
         let t = e.children()[2]; // 时间和消息数
 
@@ -93,7 +97,8 @@ function findMessages() {
         if (
             e.children().length !== 3 // 第一个会长度不是3
             || e.className().indexOf("LinearLayout") < 0 // 没有更多是FrameLayout
-            || t.className().indexOf("LinearLayout") < 0 // 粉丝 | 互动 这些是 ImageView
+            // || t.className().indexOf("LinearLayout") < 0 // 粉丝 | 互动 这些是 ImageView
+            || h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
         ) return null
 
         let mchild = m.children();
@@ -181,7 +186,7 @@ function isScrollEnd() {
 }
 
 // 主要处理过程
-function process({max, msgs, keywords, onlyUnread, debug}) {
+function process({max, msgs, keywords, onlyUnread, debug, wait}) {
 
     // 判断消息内容
     if (!msgs || msgs.length === 0) {
@@ -190,8 +195,8 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
     }
 
     // 默认最大次数
-    max = 200;
-
+    if (!max) max = 200;
+    
     // 处理关键词
     keywords = keywords.split(',').filter((v) => v)
 
@@ -203,7 +208,7 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
     }
 
     // 获取消息节点和当前具备的新消息数量
-    let { element, count } = getMessageCount();
+    let { element, count, maxTop } = getMessageCount();
 
     toast("新消息有" + count + "条")
     sleep(2000);
@@ -230,37 +235,61 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
     let totalCount = 0;
 
     // 记录评论发出去的人，防止重复发送
-    let _sended = [];
+    let _sended = {};
 
-    while (max > count) {
+    while (max > totalCount) {
         // 查找消息列表
         let { hasMore, records } = findMessages();
     
         sleep(1000);
     
         records.forEach(function(e) {
+            let bound = e.element.bounds();
+            let centerX = bound.centerX();
+            let centerY = bound.centerY();
+
+            // 判断是否超出了框内
+
+            if (e.nickname === "陌生人消息") {
+                // TODO:
+                e.element.click();
+                sleep(1000);
+                totalCount += processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
+                back();
+                sleep(1000);
+                return
+            }
+
             // 检查是否已经发送过了
-            if (_sended.indexOf(e.nickname) >= 0) {
+            if (_sended[e.nickname]) {
                 // 在已发送列表
-                console.log(e.nickname+"已经发送过了");
+                console.log(e.nickname+"已处理~");
                 return;
             }
 
             toast(e.nickname + " 有 "+e.count+" 条新消息");
-            sleep(1000);
+            sleep(2000);
 
             // 判断是否达到限制
             if (!debug && !audit()) {
                 toast("使用达到限制");
                 sleep(1000);
                 max = 0; // 需要终止整个循环
-                // 返回列表
                 return;
             }
 
-            // 点击进去
-            e.element.click();
+            // 点击进去 ??? 为什么点击不进去
+            // console.log("===>", e.element.clickable(), e.element.id(), e.element.className())
+            // 过滤高度
+            if (centerY > maxTop) {
+                console.log("可能会点到下面的Bar，所以跳过")
+                return;
+            }
+            click(centerX, centerY);
+            // e.element.click();
             sleep(1000);
+
+            _sended[e.nickname] = true;
 
             // 读取出所有消息
             let rmsgs = parseMessages();
@@ -268,19 +297,18 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
             if (rmsgs.length === 0) {
                 toast("该用户未发送任何消息");
                 console.log("该用户未发送任何消息");
+                sleep(1000);
                 // 返回列表
                 back();
-                sleep(1000);
                 return;
             }
 
             // 判断最后一条是不是自己
             if (rmsgs[rmsgs.length - 1].self) {
                 toast("您已回复过~");
-                console.log("您已回复过~");
-                // 返回列表
-                back();
                 sleep(1000);
+                back();
+                // 返回列表
                 return;
             }
 
@@ -331,7 +359,6 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
             send({ msg: msgs[getRandomInt(msgs.length)], debug: debug });
 
             totalCount += 1;
-            _sended.push(e.nickname);
             toast("第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
             console.log("第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
             sleep(2000);
@@ -340,7 +367,7 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
             back();
 
             // 间隔的时间
-            let _wait = args.wait.start + getRandomInt(args.wait.end - args.wait.start);
+            let _wait = wait.start + getRandomInt(wait.end - wait.start);
             toast("等待 "+_wait+"s 继续");
             sleep(_wait * 1000);
         });
@@ -357,6 +384,9 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
                 console.log("向下滚动失败.")
                 sleep(2000);
                 break;
+            } else {
+                toast("向下滚动成功~")
+                console.log("向下滚动成功~")
             }
             sleep(2000);
         }
@@ -366,6 +396,190 @@ function process({max, msgs, keywords, onlyUnread, debug}) {
     sleep(1000);
 
     return;
+}
+
+// 陌生人消息处理
+function processStranger({ debug, max, keywords, msgs, wait }) {
+
+    toast("处理陌生人消息~")
+    sleep(1000)
+
+    let totalCount = 0;
+    let _sended = {};
+
+    // 查找所有消息
+    while (max > totalCount) {
+        // 查找消息列表
+        let { hasMore, records } = findStrangerMessages();
+
+        records.forEach(function(e) {
+            // 检查是否已经发送过了
+            if (_sended[e.nickname]) {
+                // 在已发送列表
+                console.log(e.nickname+"已处理~");
+                return;
+            }
+
+            let bound = e.element.bounds();
+            let centerX = bound.centerX();
+            let centerY = bound.centerY();
+
+            toast(e.nickname + "有" + e.count + "条消息~")
+            sleep(1000)
+
+            // 判断是否达到限制
+            if (!debug && !audit()) {
+                toast("使用达到限制");
+                sleep(1000);
+                max = 0; // 需要终止整个循环
+                return;
+            }
+
+            // 点击进去消息列表
+            click(centerX, centerY);
+            // e.element.click();
+            sleep(1000);
+
+            // 记住
+            _sended[e.nickname] = true;
+
+            // 读取出所有消息
+            let rmsgs = parseMessages().filter((e) => e);
+
+
+            // 判断最后一条是不是自己
+            if (rmsgs[rmsgs.length - 1].self) {
+                toast("您已回复过~");
+                sleep(1000);
+                back();
+                // 返回列表
+                return;
+            }
+
+            // 找出最后一条发过来的消息
+            let rrmsgs = rmsgs.filter((e) => !e.self);
+            if (rrmsgs.length === 0) {
+                toast("没收到任何消息");
+                console.log("没收到任何消息~");
+                // 返回列表
+                back();
+                sleep(1000);
+                return;
+            }
+
+            // 过滤内容不符合关键词的
+            let matched = true;
+            if (keywords && keywords.length > 0) {
+                matched = false;
+                // 或的关系
+                for (let i = 0; i < keywords.length; i ++) {
+                    // 有任意一个符合条件就可以去发送
+                    matched = content.indexOf(keywords[i]) > 0;
+                    if (matched) break;
+                }
+            }
+
+            if (!matched) {
+                toast("消息不匹配关键词");
+                console.log("消息:", content, "不匹配关键词:", keywords);
+                // 返回列表
+                back();
+                sleep(1000);
+                return;
+            }
+
+            // 发送随机内容
+            send({ msg: msgs[getRandomInt(msgs.length)], debug: debug });
+
+            totalCount += 1;
+            toast("陌生人的第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
+            console.log("陌生人的第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
+            sleep(2000);
+
+            // 返回列表
+            back();
+
+            // 间隔的时间
+            let _wait = wait.start + getRandomInt(wait.end - wait.start);
+            toast("等待 "+_wait+"s 继续");
+            sleep(_wait * 1000);
+        })
+
+        if (!hasMore) break;
+
+        // 滚动
+        // 还有更多内容就向下滚动，向下滚动
+        if (totalCount <= max ) {
+            // 向下滚动屏幕
+            let r = swipe(200, 1200, 430, 100, 1000);
+            if (!r) {
+                toast("向下滚动失败");
+                console.log("向下滚动失败.")
+                sleep(1000);
+                break;
+            } else {
+                toast("向下滚动成功~")
+                console.log("向下滚动成功~")
+                sleep(2000);
+            }
+        }
+    }
+
+    return totalCount;
+}
+
+
+// 找到陌生人的私信
+function findStrangerMessages() {
+
+    let container = className("android.support.v7.widget.RecyclerView").findOne(); // ViewPager
+
+    let items = container.children();
+
+    let hasMore = !(items[items.length - 1].className().indexOf("FrameLayout") > 0
+        && items[items.length - 1].children()[0].text() === "无更多消息");
+    
+    // 1. 过滤非个人私信
+    let records = items.slice(0, items.length - (hasMore ? 0 : 1)).map(function(e) {
+        let h = e.children()[0]; // 头像
+        let m = e.children()[1]; // 暱称和内容
+        let t = e.children()[2]; // 时间和消息数
+
+        // 更多，或者是第一个
+        if (
+            e.children().length !== 3 // 第一个会长度不是3
+            || e.className().indexOf("LinearLayout") < 0 // 没有更多是FrameLayout
+            // || t.className().indexOf("LinearLayout") < 0 // 粉丝 | 互动 这些是 ImageView
+            || h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
+        ) return null
+
+        let mchild = m.children();
+        let tchild = t.children();
+
+        let countElement = tchild[1] && tchild[1].findOne(className("TextView"));
+
+        // 需要处理异常和错误
+        let msg = {
+            element: e,
+            count: countElement ? countElement.text() : 0,
+            time: tchild[0].text(),
+            nickname: mchild[0].children()[0].text(),
+            content: mchild[1].findOne(className("TextView")).text(),
+        }
+
+        // 过滤官方的帐号
+        if (msg.nickname === "抖音小助手") return null;
+        if (msg.nickname === "系统消息") return null;
+
+        return msg
+    }).filter(function(e) {
+        return e; 
+    });
+
+    return {
+        hasMore: hasMore,
+        records: records,
+    }
 }
 
 // 获取随机整数
@@ -378,3 +592,5 @@ function main(_) {
     args = _;
     process(args);
 }
+
+main(args)
