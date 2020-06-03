@@ -208,7 +208,10 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
     }
 
     // 判断是否是陌生人消息
-    if (text("一键已读").findOne()) {
+    if (className("TextView").text("一键已读").find().length > 0) {
+        toast("在陌生人信息列表");
+        console.log("在陌生人")
+        sleep(1000);
         processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
         toast("陌生人消息全部获取完成");
         sleep(1000);
@@ -597,5 +600,3 @@ function main(_) {
     args = _;
     process(args);
 }
-
-main(args)
