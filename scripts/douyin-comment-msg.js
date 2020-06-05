@@ -73,7 +73,13 @@ function findCommentButton() {
 
     let imgs = []
 
-    let view = className("android.support.v4.view.ViewPager").findOne()
+    let views = className("android.support.v4.view.ViewPager").find()
+
+    let view = views.filter((e) => {
+        let b = e.bounds()
+        console.log(e.id(), e.className(), b.left, b.right, b.top, b.bottom)
+        return b.right > 0
+    })[0]
 
     if (view) console.log("==> 找到 ViewPager =>", view.id())
     // 找出所有的图片
@@ -344,3 +350,5 @@ function main(_) {
     args = _;
     process(args);
 }
+
+main(args)
