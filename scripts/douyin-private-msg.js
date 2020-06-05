@@ -388,7 +388,7 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
         if (!hasMore) break;
 
         // 还有更多内容就向下滚动，向下滚动
-        if (totalCount <= max ) {
+        if (totalCount < max ) {
             // 向下滚动屏幕
             let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
@@ -519,7 +519,7 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
 
         // 滚动
         // 还有更多内容就向下滚动，向下滚动
-        if (totalCount <= max ) {
+        if (totalCount < max ) {
             // 向下滚动屏幕
             let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
