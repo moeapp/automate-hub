@@ -18,27 +18,33 @@ function audit() {
     let res;
     let str;
     let r;
-    try {
-        res = http.post(
-            args["server"] + "/counter",
-            {
-                username: args["username"],
-                token: args["token"]
-            }
-        );
-        str = res.body.string();
-        console.log(str);
-        r = JSON.parse(str);
-        if ( r.status === "200" ) return true;
-        console.log(r.msg);
-        toast(r.msg);
-        sleep(2000);
-    } catch(e) {
-        console.log(e);
-        toast(e);
-        sleep(2000);
-        return false;
+
+    let count = 0
+    while (count < 3) {
+        try {
+            res = http.post(
+                args["server"] + "/counter",
+                {
+                    username: args["username"],
+                    token: args["token"]
+                }
+            );
+            str = res.body.string();
+            console.log(str);
+            r = JSON.parse(str);
+            if ( r.status === "200" ) return true;
+            console.log(r.msg);
+            toast(r.msg);
+            sleep(2000);
+        } catch(e) {
+            console.log("第" + (count + 1) + "请求失败" + e);
+            toast("第" + (count + 1) + "请求失败" + e);
+            sleep(2000);
+        }
+        count += 1;
     }
+
+    return false;
 }
 
 // 是否在私信Tab
@@ -280,8 +286,6 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
 
             // 判断是否达到限制
             if (!debug && !audit()) {
-                toast("使用达到限制");
-                sleep(1000);
                 max = 0; // 需要终止整个循环
                 return;
             }
@@ -437,8 +441,6 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
 
             // 判断是否达到限制
             if (!debug && !audit()) {
-                toast("使用达到限制");
-                sleep(1000);
                 max = 0; // 需要终止整个循环
                 return;
             }
