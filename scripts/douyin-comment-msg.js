@@ -285,7 +285,7 @@ function process({max, msgs, keywords, debug}) {
             sleep(_wait * 1000);
         }
 
-        if (count <= max ) {
+        if (count < max ) {
 
             // TODO: 滚动到达底部判断
             if (isScrollEnd()) {
