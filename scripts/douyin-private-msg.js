@@ -37,8 +37,8 @@ function audit() {
             toast(r.msg);
             sleep(2000);
         } catch(e) {
-            console.log("第" + (count + 1) + "请求失败" + e);
-            toast("第" + (count + 1) + "请求失败" + e);
+            console.log("第" + (count + 1) + "次请求失败" + e);
+            toast("第" + (count + 1) + "次请求失败" + e);
             sleep(2000);
         }
         count += 1;

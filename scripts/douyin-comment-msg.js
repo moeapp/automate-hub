@@ -37,8 +37,8 @@ function audit() {
             toast(r.msg);
             sleep(2000);
         } catch(e) {
-            console.log("第" + (count + 1) + "请求失败" + e);
-            toast("第" + (count + 1) + "请求失败" + e);
+            console.log("第" + (count + 1) + "次请求失败" + e);
+            toast("第" + (count + 1) + "次请求失败" + e);
             sleep(2000);
         }
         count += 1;
@@ -77,16 +77,12 @@ function findCommentButton() {
 
     if (view) console.log("==> 找到 ViewPager =>", view.id())
     // 找出所有的图片
-    if (view) imgs = view.find(className("ImageView"))
+    if (view) imgs = view.find(className("ImageView").descContains("评论"))
 
-    for (let i=0; i<imgs.length; i++) {
-        let desc = imgs[i].desc()
-        if (desc && desc.indexOf("评论") === 0) {
-            return imgs[i].parent()
-        }
-    }
+    console.log("一共找到" + imgs.length + "评论按钮")
+    return imgs.length === 3 ? imgs[1].parent() : imgs[0].parent()
 
-    return null
+    // 原来的逻辑 不好用
 
     let countRegex = /^\d+(\.\d+)?[wk]?$/;
 
@@ -127,10 +123,15 @@ function isCommentList() {
 // - id adc
 // - 布局逻辑 LinearLayout
 function findComments() {
-    let comments = className("LinearLayout").find().filter(function(e) {
-        let ch = e.children();
-        return ch.length === 1 && ch[0].className().indexOf("ViewGroup") > 0
-    }).map(function(e) { return e })
+    let container = className("android.support.v7.widget.RecyclerView").findOne()
+
+    console.log("评论列表", container.id(), container.className())
+
+    let comments = container.children().filter((e) => e.children().length === 1 && e.children()[0].className().indexOf("ViewGroup") > 0)
+    // let comments = container.find(className("ViewGroup")).map((e) => {
+    //     console.log("ViewGroup", e.id(), e.className())
+    //     return e.parent()
+    // })
     return comments;
 }
 
