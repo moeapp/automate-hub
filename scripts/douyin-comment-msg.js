@@ -17,24 +17,34 @@ function audit() {
     let res;
     let str;
     let r;
-    try {
-        res = http.post(
-            args["server"] + "/counter",
-            {
-                username: args["username"],
-                token: args["token"]
-            }
-        );
-        str = res.body.string();
-        console.log(str);
-        r = JSON.parse(str);
-        if ( r.status === "200" ) return true;
-        toast(r.msg);
-    } catch(e) {
-        console.log(e);
-        return false;
+
+    let count = 0
+
+    while (count < 3) {
+        try {
+            res = http.post(
+                args["server"] + "/counter",
+                {
+                    username: args["username"],
+                    token: args["token"]
+                }
+            );
+            str = res.body.string();
+            console.log(str);
+            r = JSON.parse(str);
+            if ( r.status === "200" ) return true;
+            console.log(r.msg);
+            toast(r.msg);
+            sleep(2000);
+        } catch(e) {
+            console.log("第" + (count + 1) + "请求失败" + e);
+            toast("第" + (count + 1) + "请求失败" + e);
+            sleep(2000);
+        }
+        count += 1;
     }
-    sleep(1000);
+
+    return false;
 }
 
 // 检查是否在目标程序内
@@ -230,7 +240,7 @@ function process({max, msgs, keywords, debug}) {
 
             // 判断是否达到限制
             if (!debug && !audit()) {
-                toast("使用达到限制");
+                max = 0; // 需要终止整个循环
                 return;
             }
 
