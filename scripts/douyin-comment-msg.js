@@ -125,19 +125,32 @@ function isCommentList() {
     return tmp.length === 1;
 }
 
+
+function xx(e, prefix) {
+    console.log(prefix, e.id(), " - ", e.className(), "-", e.text())
+    e.children().forEach(function(x) {
+        xx(x, "=" + prefix)
+    })
+}
+
 // 查找所有评论
 // - id adc
 // - 布局逻辑 LinearLayout
 function findComments() {
-    let container = className("android.support.v7.widget.RecyclerView").findOne()
 
-    console.log("评论列表", container.id(), container.className())
+    let views = className("android.support.v7.widget.RecyclerView").find().filter((e) => e.bounds().left === 0)
+    let container = views[0]
 
     let comments = container.children().filter((e) => e.children().length === 1 && e.children()[0].className().indexOf("ViewGroup") > 0)
     // let comments = container.find(className("ViewGroup")).map((e) => {
     //     console.log("ViewGroup", e.id(), e.className())
     //     return e.parent()
     // })
+
+    console.log("评论列表", container.id(), "大概数量:", comments.length)
+
+    xx(container, "=>")
+
     return comments;
 }
 
@@ -350,3 +363,5 @@ function main(_) {
     args = _;
     process(args);
 }
+
+main(args)

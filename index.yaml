@@ -1,8 +1,8 @@
-name: 自动工具箱(内测)
+name: 自动工具箱
 pipelines:
   - id: douyin/comment/send-msg
     name: 抖音评论回复私信
-    description: 抖音评论私信回复
+    description: 抖音评论私信回复，适配版本v11.3.0
     app: 抖音短视频
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
@@ -12,7 +12,7 @@ pipelines:
   - id: douyin/msg/send-msg
     name: 抖音私信回复
     app: 抖音短视频
-    description: 抖音评论私信回复
+    description: 抖音评论私信回复，适配版本v11.3.0
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
     code: "toast('待开发')"
