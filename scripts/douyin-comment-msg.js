@@ -363,5 +363,3 @@ function main(_) {
     args = _;
     process(args);
 }
-
-main(args)
