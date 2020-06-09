@@ -1,4 +1,4 @@
-name: 自动工具箱(内测)
+name: 自动工具箱
 pipelines:
   - id: douyin/comment/send-msg
     name: 抖音评论回复私信
