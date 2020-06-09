@@ -92,19 +92,20 @@ function findMessages() {
 
     let hasMore = !(items[items.length - 1].className().indexOf("FrameLayout") > 0
         && items[items.length - 1].children()[0].text() === "无更多消息");
+
+    console.log("有更多: " + hasMore, "大概总数:" + items.length)
     
     // 1. 过滤非个人私信
-    let records = items.slice(0, items.length - (hasMore ? 0 : 1)).map(function(e) {
+    // 老方式：items.slice(0, items.length - (hasMore ? 0 : 1))
+    let records = container.find(className("LinearLayout")).filter((e) => e.children().length === 3).map(function(e) {
         let h = e.children()[0]; // 头像
         let m = e.children()[1]; // 暱称和内容
         let t = e.children()[2]; // 时间和消息数
 
         // 更多，或者是第一个
+        // e.className().indexOf("FrameLayout") < 0 // 11.3, 是FrameLayout
         if (
-            e.children().length !== 3 // 第一个会长度不是3
-            || e.className().indexOf("LinearLayout") < 0 // 没有更多是FrameLayout
-            // || t.className().indexOf("LinearLayout") < 0 // 粉丝 | 互动 这些是 ImageView
-            || h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
+            h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
         ) return null
 
         let mchild = m.children();
@@ -549,18 +550,20 @@ function findStrangerMessages() {
     let hasMore = !(items[items.length - 1].className().indexOf("FrameLayout") > 0
         && items[items.length - 1].children()[0].text() === "无更多消息");
     
+    console.log("有更多: " + hasMore, "大概总数:" + items.length)
+    
     // 1. 过滤非个人私信
-    let records = items.slice(0, items.length - (hasMore ? 0 : 1)).map(function(e) {
+    // 老方式：items.slice(0, items.length - (hasMore ? 0 : 1))
+    let records = container.find(className("LinearLayout")).filter((e) => e.children().length === 3).map(function(e) {
         let h = e.children()[0]; // 头像
         let m = e.children()[1]; // 暱称和内容
         let t = e.children()[2]; // 时间和消息数
 
         // 更多，或者是第一个
         if (
-            e.children().length !== 3 // 第一个会长度不是3
-            || e.className().indexOf("LinearLayout") < 0 // 没有更多是FrameLayout
-            // || t.className().indexOf("LinearLayout") < 0 // 粉丝 | 互动 这些是 ImageView
-            || h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
+            // e.children().length !== 3 // 第一个会长度不是3
+            // || e.className().indexOf("LinearLayout") < 0 // 没有更多是FrameLayout
+            false || h.find(className("ImageView")).length > 0 // 头像出会有"官方"图片字样
         ) return null
 
         let mchild = m.children();
