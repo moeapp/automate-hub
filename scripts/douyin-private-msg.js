@@ -181,7 +181,13 @@ function send({ msg, debug}) {
     sleep(1000);
 
     // 找到发送按钮
-    let sbtn = input.parent().parent().children()[3];
+    let sbtn = className("ImageView").desc("发送").findOne()
+    if (!sbtn) {
+        console.log("未找到发送按钮")
+        toast("发送按钮查找失败")
+        sleep(1000)
+        return
+    }
     if (!debug) sbtn.click();
     sleep(1000)
 }
