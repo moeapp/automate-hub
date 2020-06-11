@@ -142,6 +142,27 @@ function parseMessages() {
     // 找到消息列表
     let container = className("android.support.v7.widget.RecyclerView").findOne();
 
+    // 找到头像
+    let mmsgs = className("com.bytedance.ies.dmt.ui.widget.DmtTextView").find().map((e) => {
+        // 父级查找文本,图片等
+        let txt = e.parent().findOne(className("TextView"))
+        let img = e.parent().findOne(className("ImageView"))
+        if (!txt && img) {
+            console.log("未知消息类型")
+            return null
+        }
+
+        let ct = txt || img
+
+        return {
+            content: img ? "[IMAGE]" : txt,
+            self: ct.bounds().left < e.bounds().left, // 内容在头像的左边
+        }
+    }).filter((e) => e)
+
+    return mmsgs
+
+    // 这个方法不太安全
     // 可能为消息的是, LinearLayout
     let msgs = container.children().map(function(e) {
         let items = e.children();
