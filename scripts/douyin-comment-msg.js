@@ -4,9 +4,11 @@ let args = {
     "wait":{"start":2,"end":4},
     "debug":true,
     "msgs":["Hello, 你好"],
-    "max": 100,
-    "username":"zhouhui",
-    "token":"b639cb16-1592-4490-91ce-ce38ce1e8bd7",
+    "max": 2, // 最大发送次数
+    "max_continue": true, // 达到最大次数是否继续
+    "max_wait_for": 10, // 达到最大次数等待时间
+    "username":"luopeng",
+    "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5"
 }
 
@@ -179,7 +181,7 @@ function isScrollEnd() {
 }
 
 // 主要处理过程
-function process({max, msgs, keywords, debug}) {
+function process({max, max_continue, max_wait_for, msgs, keywords, debug}) {
 
     // 判断消息内容
     if (!msgs || msgs.length === 0) {
@@ -214,7 +216,8 @@ function process({max, msgs, keywords, debug}) {
     let _sended = [];
 
     // 一直滚动屏幕， 一旦到达就退出
-    while(max > count) {
+    // 如果到达最大次数，可以选择休息一定时间再继续
+    while(max > count || max_continue) {
 
         // 找到所有评论
         let cmt = findComments();
@@ -226,8 +229,20 @@ function process({max, msgs, keywords, debug}) {
             let item = cmt[i];
 
             if (count >= max) {
-                console.log("发送数量达总量:"+count);
-                break;
+                if (max_continue) {
+                    // 计数清零
+                    count = 0
+                    // 刚达到最大，选择休息
+                    toast("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    console.log("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    let _sleep_time = max_wait_for * 1000
+                    sleep(_sleep_time)
+                } else {
+                    console.log("发送数量达总量:"+count);
+                    toast("发送数量达总量:"+count);
+                    sleep(2000)
+                    break;
+                }
             }
 
             // 解析出作者和评论内容
@@ -292,13 +307,15 @@ function process({max, msgs, keywords, debug}) {
             toast("第" + count + "条消息发送成功" + (debug?" [DEBUG]": ""));
             console.log("第" + count + "条消息发送成功" + (debug?" [DEBUG]": ""));
 
+
             // 间隔的时间
             let _wait = args.wait.start + getRandomInt(args.wait.end - args.wait.start);
-            toast("等待 "+_wait+"s 继续");
-            sleep(_wait * 1000);
+            toast("等待 "+_wait+"秒 继续");
+            let _sleep_time = _wait * 1000
+            sleep(_sleep_time);
         }
 
-        if (count < max ) {
+        if (count < max || max_continue ) {
 
             // TODO: 滚动到达底部判断
             if (isScrollEnd()) {

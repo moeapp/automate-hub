@@ -4,7 +4,9 @@ let args = {
     "wait":{"start":2,"end":4},
     "debug":true,
     "msgs":["Hello, 你好"],
-    "max": 100,
+    "max": 2, // 最大发送次数
+    "max_continue": true, // 达到最大次数是否继续
+    "max_wait_for": 2, // 达到最大次数等待时间
     "username":"luopeng",
     "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5",
@@ -220,7 +222,7 @@ function isScrollEnd() {
 }
 
 // 主要处理过程
-function process({max, msgs, keywords, onlyUnread, debug, wait}) {
+function process({max, max_continue, max_wait_for, msgs, keywords, onlyUnread, debug, wait}) {
 
     // 判断消息内容
     if (!msgs || msgs.length === 0) {
@@ -239,7 +241,10 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
         toast("在陌生人信息列表");
         console.log("在陌生人")
         sleep(1000);
-        processStranger({ max: max, keywords: keywords, debug: debug, msgs: msgs, wait: wait })
+        processStranger({
+            max: max, max_continue: max_continue, max_wait_for: max_wait_for,
+            keywords: keywords, debug: debug, msgs: msgs, wait: wait
+        })
         toast("陌生人消息全部获取完成");
         sleep(1000);
         return;
@@ -275,13 +280,33 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
     // 记录评论发出去的人，防止重复发送
     let _sended = {};
 
+    // 如果到达最大次数，可以选择休息一定时间再继续
     while (max > totalCount) {
         // 查找消息列表
         let { hasMore, records } = findMessages();
     
         sleep(1000);
-    
-        records.forEach(function(e) {
+
+        for (let i=0; i<records.length; i++) {
+
+            if (totalCount >= max) {
+                if (max_continue) {
+                    // 计数清零
+                    totalCount = 0
+                    // 刚达到最大，选择休息
+                    toast("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    console.log("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    let _sleep_time = max_wait_for * 1000
+                    sleep(_sleep_time)
+                } else {
+                    console.log("发送数量达总量:"+totalCount);
+                    toast("发送数量达总量:"+totalCount);
+                    sleep(2000)
+                    break;
+                }
+            }
+
+            let e = records[i]
             let bound = e.element.bounds();
             let centerX = bound.centerX();
             let centerY = bound.centerY();
@@ -302,7 +327,7 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
                 return;
             }
 
-            toast(e.nickname + " 有 "+e.count+" 条新消息");
+            toast(e.nickname);
             sleep(2000);
 
             // 判断是否达到限制
@@ -403,13 +428,13 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
             let _wait = wait.start + getRandomInt(wait.end - wait.start);
             toast("等待 "+_wait+"s 继续");
             sleep(_wait * 1000);
-        });
+        };
     
         // 没有更多内容
         if (!hasMore) break;
 
         // 还有更多内容就向下滚动，向下滚动
-        if (totalCount < max ) {
+        if (totalCount < max || max_continue ) {
             // 向下滚动屏幕
             let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
@@ -432,10 +457,13 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
 }
 
 // 陌生人消息处理
-function processStranger({ debug, max, keywords, msgs, wait }) {
+function processStranger({ debug, max, max_continue, max_wait_for, keywords, msgs, wait }) {
 
     toast("处理陌生人消息~")
     sleep(1000)
+
+    // 默认最大次数
+    if (!max) max = 200;
 
     let totalCount = 0;
     let _sended = {};
@@ -445,7 +473,26 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
         // 查找消息列表
         let { hasMore, records } = findStrangerMessages();
 
-        records.forEach(function(e) {
+        for (let i=0; i<records.length; i++) {
+            let e = records[i]
+
+            if (totalCount >= max) {
+                if (max_continue) {
+                    // 计数清零
+                    totalCount = 0
+                    // 刚达到最大，选择休息
+                    toast("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    console.log("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
+                    let _sleep_time = max_wait_for * 1000
+                    sleep(_sleep_time)
+                } else {
+                    console.log("发送数量达总量:"+totalCount);
+                    toast("发送数量达总量:"+totalCount);
+                    sleep(2000)
+                    break;
+                }
+            }
+
             // 检查是否已经发送过了
             if (_sended[e.nickname]) {
                 // 在已发送列表
@@ -457,7 +504,7 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
             let centerX = bound.centerX();
             let centerY = bound.centerY();
 
-            toast(e.nickname + "有" + e.count + "条消息~")
+            toast(e.nickname)
             sleep(1000)
 
             // 判断是否达到限制
@@ -524,7 +571,7 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
 
             totalCount += 1;
             toast("陌生人的第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
-            console.log("陌生人的第" + totalCount + "条消息发送成功" + (debug?" [DEBUG]": ""));
+            console.log("陌生人的第" + totalCount + "/" + max + "条消息发送成功" + (debug?" [DEBUG]": ""));
             sleep(2000);
 
             // 返回列表
@@ -534,13 +581,13 @@ function processStranger({ debug, max, keywords, msgs, wait }) {
             let _wait = wait.start + getRandomInt(wait.end - wait.start);
             toast("等待 "+_wait+"s 继续");
             sleep(_wait * 1000);
-        })
+        }
 
         if (!hasMore) break;
 
         // 滚动
         // 还有更多内容就向下滚动，向下滚动
-        if (totalCount < max ) {
+        if (totalCount < max || max_continue ) {
             // 向下滚动屏幕
             let r = swipe(200, 1200, 430, 100, 1000);
             if (!r) {
