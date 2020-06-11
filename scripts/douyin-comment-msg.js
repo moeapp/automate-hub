@@ -193,13 +193,6 @@ function process({max, msgs, keywords, debug}) {
     // 处理关键词
     keywords = keywords.split(',').filter((v) => v)
 
-    // 确保在抖音中
-    let curr = currentPackage();
-    if (curr.indexOf("ugc.aweme") < 0) {
-         toast("不在抖音程序内");
-         return;
-    }
-
     // 如果不在评论列表页，点击按钮
     if (!isCommentList()) {
         let commentBtn = findCommentButton();
