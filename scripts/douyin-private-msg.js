@@ -147,7 +147,7 @@ function parseMessages() {
         // 父级查找文本,图片等
         let txt = e.parent().findOne(className("TextView"))
         let img = e.parent().findOne(className("ImageView"))
-        if (!txt && img) {
+        if (!txt && !img) {
             console.log("未知消息类型")
             return null
         }
