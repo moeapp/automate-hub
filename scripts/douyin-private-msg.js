@@ -234,13 +234,6 @@ function process({max, msgs, keywords, onlyUnread, debug, wait}) {
     // 处理关键词
     keywords = keywords.split(',').filter((v) => v)
 
-    // 确保在抖音中
-    let curr = currentPackage();
-    if (curr.indexOf("ugc.aweme") < 0) {
-         toast("不在抖音程序内");
-         return;
-    }
-
     // 判断是否是陌生人消息
     if (className("TextView").text("一键已读").find().length > 0) {
         toast("在陌生人信息列表");
