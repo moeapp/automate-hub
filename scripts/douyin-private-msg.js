@@ -234,7 +234,7 @@ function process({max, max_continue, max_wait_for, msgs, keywords, onlyUnread, d
     if (!max) max = 200;
     
     // 处理关键词
-    keywords = keywords.split(',').filter((v) => v)
+    keywords = keywords?keywords.split(',').filter((v) => v):[]
 
     // 判断是否是陌生人消息
     if (className("TextView").text("一键已读").find().length > 0) {
