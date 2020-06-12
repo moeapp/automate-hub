@@ -233,9 +233,9 @@ function process({max, max_continue, max_wait_for, msgs, keywords, debug}) {
                     // 计数清零
                     count = 0
                     // 刚达到最大，选择休息
-                    toast("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
-                    console.log("到达最大次数" + max + "，休眠" + max_wait_for + "秒")
-                    let _sleep_time = max_wait_for * 1000
+                    toast("到达最大次数" + max + "，休眠" + max_wait_for + "分钟")
+                    console.log("到达最大次数" + max + "，休眠" + max_wait_for + "分钟")
+                    let _sleep_time = max_wait_for * 1000 * 60 // 分钟
                     sleep(_sleep_time)
                 } else {
                     console.log("发送数量达总量:"+count);
