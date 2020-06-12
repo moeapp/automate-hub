@@ -33,7 +33,7 @@ function findFollowings() {
     let txts = ["已关注", "互相关注"]
     txts.forEach((t) => className("TextView").text(t).find().forEach((e) => items.push(e)))
 
-    let hasMore = text("发现好友").find().length === 0
+    let hasMore = text("发现好友").find().length === 0 || text("暂时没有更多了").find().length === 0
 
     return {items: items, hasMore: hasMore}
 }
@@ -86,7 +86,6 @@ function process({ wait, max, debug }) {
             
             // TODO: 正确判断
             totalCount += 1
-
 
             // 间隔的时间
             let _wait = wait.start + getRandomInt(wait.end - wait.start);
