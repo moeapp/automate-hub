@@ -79,7 +79,14 @@ function process({ wait, max, debug }) {
         toast("查找到" + items.length + "个关注")
         sleep(1000)
 
-        items.forEach((e) => {
+        for (let i=0; i<items.length; i++) {
+            let e = items[i]
+            if (totalCount >= max) {
+                console.log("发送数量达总量:"+totalCount);
+                toast("发送数量达总量:"+totalCount);
+                sleep(2000)
+                break;
+            }
 
             // 取消关注
             unfollow(e, debug)
@@ -91,7 +98,7 @@ function process({ wait, max, debug }) {
             let _wait = wait.start + getRandomInt(wait.end - wait.start);
             toast("等待 "+_wait+"s 继续");
             sleep(_wait * 1000);
-        })
+        }
 
         // 没有更多内容
         if (!hasMore) break;
