@@ -23,3 +23,11 @@ pipelines:
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
     path: scripts/douyin-unfollow.js
+
+  - id: douyin/follower/follow
+    name: 抖音一键回关
+    app: 抖音短视频
+    description: 抖音一键取消回关粉丝，适配版本v11.3.0
+    icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
+    params: null # TODO:
+    path: scripts/douyin-follow.js
