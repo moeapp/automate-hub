@@ -1,0 +1,11 @@
+{
+  "name": "automate-repo",
+  "version": "1.2.0",
+  "repository": "https://jiusanzhou@github.com/moeapp/automate-hub.git",
+  "author": "Zoe <hi@zoe.im>",
+  "license": "MIT",
+  "scripts": {},
+  "devDependencies": {
+    "esbuild": "^0.5.4"
+  }
+}
