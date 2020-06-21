@@ -31,14 +31,6 @@ pipelines:
     params: null # TODO:
     path: scripts/douyin-follow.js
 
-  - id: douyin/msg/follower
-    name: 抖音私信粉丝
-    app: 抖音短视频
-    description: 抖音给粉丝发送私信消息，适配版本v11.3.0
-    icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
-    params: null # TODO:
-    path: scripts/douyin-private-msg-fans.js
-
   - id: douyin/live/zan
     name: 抖音直播点赞
     app: 抖音短视频
@@ -53,3 +45,11 @@ pipelines:
     icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
     params: null # TODO:
     path: scripts/douyin-live-msg.js
+
+  - id: douyin/msg/follower
+    name: 抖音私信粉丝
+    app: 抖音短视频
+    description: 抖音给粉丝发送私信消息，适配版本v11.3.0
+    icon: https://s3.pstatp.com/aweme/resource/web/static/image/index/logo_b7a2aca.png
+    params: null # TODO:
+    path: scripts/douyin-private-msg-fans.js
