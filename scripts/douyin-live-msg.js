@@ -39,8 +39,6 @@ function send({ msg, debug}) {
     }
     if (!debug) sbtn.click();
     sleep(1000)
-    // 返回
-    back()
 }
 
 function process({ max, debug, wait, msgs }) {
