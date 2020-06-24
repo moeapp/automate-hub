@@ -10,8 +10,12 @@ let args = {
 function process({ max, debug, wait }) {
 
 
-    let sw = device.width / 2 + getRandomInt(0 - 10)
-    let sh = device.height / 2 + getRandomInt(0 - 10)
+    let sw = device.width / 2 + getRandomInt(10)
+    let sh = device.height / 2 + getRandomInt(10)
+    if (sw < 10 || sh < 10) {
+        sw = 300
+        sh = 500
+    }
     console.log("开始点赞，屏幕大小", device.width, "*", device.height)
     toast("开始点赞，屏幕大小" + device.width + "*" + device.height)
     sleep(1000)
