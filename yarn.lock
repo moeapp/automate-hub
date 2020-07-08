@@ -2,6 +2,7 @@
 # yarn lockfile v1
 
 
-esbuild@^0.5.4:
-  version "0.5.4"
-  resolved "https://registry.npm.taobao.org/esbuild/download/esbuild-0.5.4.tgz#0460ef999089dba534f2d214a0b84affae32669b"
+esbuild@^0.5.14:
+  version "0.5.14"
+  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.5.14.tgz#c7c900f728304136556db036840e638318e81cf1"
+  integrity sha512-0vVlkpR7XOsqzhUA6xgKzZ/vIXCi+sZZI7t/HG4vJ+nUqo77iEyg1KfIKuqk2kBJQ9/Ts7NXuK5/mfL2J0ZVzA==
