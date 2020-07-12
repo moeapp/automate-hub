@@ -1,7 +1,7 @@
 let args = {
-    "wait":{"start":2,"end":4},
+    "wait":{"start":0,"end":1},
     "debug":true,
-    "max": 3,
+    "max": 10,
     "username":"luopeng",
     "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5",
@@ -10,14 +10,14 @@ let args = {
 function process({ max, debug, wait }) {
 
 
-    let sw = device.width / 2 + getRandomInt(10)
-    let sh = device.height / 2 + getRandomInt(10)
+    let sw = device.width / 2 - getRandomInt(10)
+    let sh = device.height / 2 - 200 - getRandomInt(10)
     if (sw < 10 || sh < 10) {
         sw = 300
         sh = 500
     }
-    console.log("开始点赞，屏幕大小", device.width, "*", device.height)
-    toast("开始点赞，屏幕大小" + device.width + "*" + device.height)
+    console.log("开始点赞，屏幕大小", device.width, " * ", device.height, "点击：", sw, " * ", sh)
+    toast("开始点赞\n屏幕大小" + device.width + " * " + device.height +"\n点击：" + sw + " * " + sh)
     sleep(1000)
 
     // 点赞
@@ -27,9 +27,9 @@ function process({ max, debug, wait }) {
     while (max > totalCount) {
 
         // 双击屏幕中心
-        click(sw, sh)
-        sleep(200)
-        click(sw, sh)
+        console.log("== 0 ===>", click(sw, sh))
+        sleep(100)
+        console.log("== 1 ===>", click(sw, sh))
 
         // dialogs.confirm("哈哈", "好的")
 
