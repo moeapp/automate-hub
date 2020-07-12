@@ -53,6 +53,8 @@ function unfollow(e, debug) {
 
 function process({ wait, max, debug }) {
 
+    if (!wait) wait = {start:10, end:20}
+ 
     if (!max) max = 500
 
     let infollpage = isFollowerTab()

@@ -1,8 +1,8 @@
 let args = {
-    "wait":{"start":2,"end":4},
+    "wait":{"start":0,"end":1},
     "debug":true,
-    "max": 3,
-    "msgs":["Hello, 你好"],
+    "max": 100,
+    "msgs":["6666666666666666666666666666666666666"],
     "username":"luopeng",
     "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5",
