@@ -165,6 +165,12 @@ function send({ msg, debug }) {
 
 function process({ wait, max, debug, msgs }) {
 
+    // 判断消息
+    if (!msgs || msgs.length === 0) {
+        toast("请添加需要发送的消息")
+        return
+    }
+
     if (!max) max = 500
 
     let infollpage = isFansFollowerTab()
