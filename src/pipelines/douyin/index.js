@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   package: "com.ss.android.ugc.aweme", // 包名
   versions: ["*"], // 支持的版本
   app: "抖音短视频", // 可以自动补充

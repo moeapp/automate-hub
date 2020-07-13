@@ -1,8 +1,11 @@
 const { startService } = require("esbuild");
 const fs = require("fs");
 const path = require("path");
+const { time } = require("console");
 
 // const yaml = require("js-yaml");
+
+let esbuild;
 
 function walkFile(startPath, filter, callback, recurse = true) {
   if (!fs.existsSync(startPath)) return;
@@ -26,21 +29,36 @@ function walkFile(startPath, filter, callback, recurse = true) {
   });
 }
 
-// build({
-//   entryPoints: ["./src/main.ts"],
-//   outfile: "./dist/main.js",
-//   minify: true,
-//   bundle: true,
-// }).catch(() => process.exit(1));
+const CWD = process.cwd();
+const CACHEDIR = ".cache"
+// require with es6 supported
+async function mrequire(v) {
+  let tmp = CACHEDIR + "/" + v.split("/").slice(-3).join("__");
+  await esbuild.build({
+    outfile: tmp,
+    entryPoints: [v],
+    bundle: true,
+    format: "cjs",
+  })
+
+  let r = require(CWD + "/" + tmp)
+  return r.default
+}
+
 
 // 别设计，最小化快速实现!!!
 
-function parse() {
+async function parse() {
   let apps = [];
 
+  let _appfiles = []; walkFile(CWD, "index.js", (v) => _appfiles.push(v));
+
   // 1. 搜索所有的 index => app 定义
-  walkFile(process.cwd(), "index.js", (v) => {
-    let app = require(v);
+  await Promise.all(_appfiles.map(async (v) => {
+
+    // 不能直接require，通过编译后的来引入
+    let app = await mrequire(v);
+
     if (!app || !app.package) return;
 
     console.log("[INFO] add application:", app.package || app.app);
@@ -53,12 +71,15 @@ function parse() {
     if (!app.id) app.id = path.basename(app._basepath);
 
     // 2. 遍历 index 找到当前 app 下所有的 pipelines
-    walkFile(app._basepath, /\.js$/, (v) => {
+    let _pipelinefiles = []; walkFile(app._basepath, /\.js$/, (v) => _pipelinefiles.push(v));
+
+    await Promise.all(_pipelinefiles.map(async (v) => {
+      // load pipelines
+      let pipeline = await mrequire(v);
+
       // ignore index.js
       if (v.indexOf("index.js") > 0) return;
 
-      // load pipelines
-      let pipeline = require(v);
       // merge pipeline with app
       pipeline = {
         ...app,
@@ -73,24 +94,26 @@ function parse() {
       delete pipeline.pipelines;
 
       app.pipelines.push(pipeline);
-    });
+
+    }))
 
     apps.push(app);
-  });
+  }));
 
   return apps;
 }
 
-async function release(service, apps) {
+async function release(apps) {
   let rs = [];
   let pipelines = [];
   apps.forEach((app) => {
     app.pipelines.forEach((pl) => {
       console.log("[INFO] build pipeline:", pl.id);
-      let r = service.build({
+      let r = esbuild.build({
         outfile: "dist/pipelines/" + pl.id.replace("/", "__") + ".js",
         entryPoints: [pl._filename],
-        bundle: false,
+        bundle: true,
+        format: "cjs",
       });
       rs.push(r);
 
@@ -101,23 +124,30 @@ async function release(service, apps) {
   await Promise.all(rs);
 }
 
-async function handle(service) {
-  let apps = parse();
+async function handle() {
+  let apps = await parse();
 
-  await release(service, apps);
+  await release(apps);
 }
 
 async function main() {
   // default load from `m`
   console.log("[INFO] start building");
-  // start service
-  const service = await startService();
 
-  await handle(service);
+  esbuild = await startService();
 
-  service.stop();
+  try {
+    await handle();
+  }catch(e) {
+    console.log(e);
+  }
+  
+  // TODO: delete .cache
+
+  esbuild.stop();
 
   console.log("[INFO] finish building");
+
 }
 
 main();
