@@ -1,5 +1,6 @@
 
+var x = "Zoe"
 
 export default () => {
-    console.log("I'm a demo!")
+    console.log("I'm " + x)
 }

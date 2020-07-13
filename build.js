@@ -1,9 +1,6 @@
 const { startService } = require("esbuild");
 const fs = require("fs");
 const path = require("path");
-const { time } = require("console");
-
-// const yaml = require("js-yaml");
 
 let esbuild;
 
@@ -31,6 +28,9 @@ function walkFile(startPath, filter, callback, recurse = true) {
 
 const CWD = process.cwd();
 const CACHEDIR = ".cache"
+
+const TARGETDIR = "dist"
+
 // require with es6 supported
 async function mrequire(v) {
   let tmp = CACHEDIR + "/" + v.split("/").slice(-3).join("__");
@@ -85,7 +85,7 @@ async function parse() {
         ...app,
         ...pipeline,
         main: pipeline.main.name, // main is the function main
-        _appID: app.id,
+        appid: app.id,
         _filename: v,
         id: pipeline.id || app.id + "/" + path.basename(v, ".js"), // combine app id and pipeline id
       };
@@ -106,20 +106,43 @@ async function parse() {
 async function release(apps) {
   let rs = [];
   let pipelines = [];
+
+  // 编译文件
   apps.forEach((app) => {
     app.pipelines.forEach((pl) => {
       console.log("[INFO] build pipeline:", pl.id);
+
+      pipelines.push(pl)
+
+      let index = "pipelines/" + pl.id.replace("/", "__") + ".js"
+
+
+      pl.index = index
+
+      // 编译
       let r = esbuild.build({
-        outfile: "dist/pipelines/" + pl.id.replace("/", "__") + ".js",
+        outfile: TARGETDIR + "/" + index,
         entryPoints: [pl._filename],
         bundle: true,
         format: "cjs",
       });
-      rs.push(r);
 
-      // TODO: generate index.yaml
+      // remove unused fields
+      delete pl._filename
+      delete pl._basepath
+
+      rs.push(r);
     });
   });
+
+  // TODO: load other data
+  let data = {
+    pipelines,
+  }
+
+  // 生成文件
+  // TODO: yaml ???
+  fs.writeFileSync(TARGETDIR + "/index.json", JSON.stringify(data))
 
   await Promise.all(rs);
 }
@@ -131,7 +154,6 @@ async function handle() {
 }
 
 async function main() {
-  // default load from `m`
   console.log("[INFO] start building");
 
   esbuild = await startService();
@@ -147,7 +169,6 @@ async function main() {
   esbuild.stop();
 
   console.log("[INFO] finish building");
-
 }
 
 main();

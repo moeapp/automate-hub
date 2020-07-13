@@ -1,7 +1,9 @@
 import demo from "../../actions/demo"
 
+var x = "Comment"
+
 function main() {
-  console.log("====>");
+  console.log("====>", x);
   demo();
 }
 
