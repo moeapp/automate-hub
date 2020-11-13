@@ -13,6 +13,10 @@ let args = {
     "server":"http://122.112.152.5"
 }
 
+
+// TODO: xxx
+var store = storages.create("automate-douyin");
+
 // 权限判断, TODO
 // - 由上层注入此逻辑
 function audit() {
@@ -102,9 +106,32 @@ function findCommentButton() {
 
     console.log("一共找到" + imgs.length + "评论按钮")
 
-    // TODO: 只要成功就可以记住这个数据
+    // 找到屏幕范围的那个按钮
+    var _x = imgs.filter((e) => {
+        var _b = e.bounds().bottom
+        return _b > 0 && _b < device.height
+    })
 
-    return imgs.length > 0 ? imgs[imgs.length === 3 ? 1 : 0].parent() : null
+    var cmtbtn = _x.length > 0 ? _x[0].parent() : null
+    // var cmtbtn = imgs.length > 0 ? imgs[imgs.length === 3 ? 1 : 0].parent() : null
+
+
+    // TODO: 只要成功就可以记住这个数据
+    if (cmtbtn) {
+        // 保存按钮
+        var b = cmtbtn.bounds()
+
+        var x = b.left + (b.right - b.left) / 2
+        var y = b.top + (b.bottom - b.top) / 2
+        
+        // if 
+        store.put("main_comment_btn_pos", {x: x, y: y})
+
+        toast("评论按钮距的位置:（" + x + ", " + y + "）")
+        sleep(2000)
+    }
+
+    return cmtbtn
 
     // 原来的逻辑 不好用
 
@@ -131,6 +158,22 @@ function findCommentButton() {
         default:
             return null;
     }
+}
+
+// 坐标点击评论按钮
+function _clickCommentBtnWithPos() {
+    // 只能使用坐标点击 (屏幕宽度 - 右边距离, 屏幕高度 - 底边距离)
+
+    // 先从 store 中去取
+    var _pos = store.get("main_comment_btn_pos")
+    if (!_pos) return false
+
+    // var sw = device.width - (_pos.right || 90)
+    // var sh = device.height - (_pos.bottom || 738) // 2160 - 1377
+    toast("尝试使用坐标点击: "+ _pos.x + " * " + _pos.y)
+    sleep(2000)
+    click(_pos.x, _pos.y)
+    return true
 }
 
 // 是否在评论列表页
@@ -228,20 +271,15 @@ function process({max, max_continue, max_wait_for, msgs, keywords, debug}) {
     if (!isCommentList()) {
         let commentBtn = findCommentButton();
         if (!commentBtn) {
-            toast("查找评论按钮失败~");
-            sleep(1000);
-
-            var right = 90
-            var bottom = 738
-            if (args.comment_btn_position) {
-                right = args.comment_btn_position.right || 90
-                bottom = args.comment_btn_position.bottom || 738
+            toast("查找评论按钮失败 ~ 尝试通过坐标点击");
+            sleep(2000);
+            if (!_clickCommentBtnWithPos(args.comment_btn_position)) {
+                // 获取失败则提示
+                toast("似乎没有成功获取过评论按钮，建议从首页上开始一次任务");
+                sleep(2000)
+                return 
             }
-            var sw = device.width - right
-            var sh = device.height - bottom // 2160 - 1377
-            toast("尝试使用坐标点击: "+ sw + " * " + sh)
-            click(sw, sh)
-            // TODO: 只能使用坐标点击 (屏幕宽度 - 右边距离, 屏幕高度 - 底边距离)
+            sleep(2000);
         } else {
             // 点击评论按钮
             commentBtn.click();
