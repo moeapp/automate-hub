@@ -7,6 +7,7 @@ let args = {
     "max": 2, // 最大发送次数
     "max_continue": true, // 达到最大次数是否继续
     "max_wait_for": 10, // 达到最大次数等待时间
+    "comment_btn_position": {right: 90, bottom: 783},
     "username":"luopeng",
     "token":"1325be6b-5cd0-4653-9041-d1f53d5dc9e0",
     "server":"http://122.112.152.5"
@@ -77,18 +78,33 @@ function findCommentButton() {
 
     let views = className("android.support.v4.view.ViewPager").find()
 
+    if (views.length === 0) {
+        console.log("似乎不能找到 ViewPager, 尝试 DmViewPager")
+        views = className("android.support.v4.view.DmtViewPager").find()
+    }
+
     let view = views.filter((e) => {
         let b = e.bounds()
         console.log(e.id(), e.className(), b.left, b.right, b.top, b.bottom)
         return b.right > 0
     })[0]
 
-    if (view) console.log("==> 找到 ViewPager =>", view.id())
+    // 20201113 这里好像从搜索入口进来时或获取失败
+    // 用 uiautomator 也抓不到
+    if (!view) {
+        console.log("找不到 ViewPage! " + "viewpager 长度为" + views.length)
+        return
+    }
+    
+    console.log("==> 找到 ViewPager =>", view.id())
     // 找出所有的图片
-    if (view) imgs = view.find(className("ImageView").descContains("评论"))
+    imgs = view.find(className("ImageView").descContains("评论"))
 
     console.log("一共找到" + imgs.length + "评论按钮")
-    return imgs.length === 3 ? imgs[1].parent() : imgs[0].parent()
+
+    // TODO: 只要成功就可以记住这个数据
+
+    return imgs.length > 0 ? imgs[imgs.length === 3 ? 1 : 0].parent() : null
 
     // 原来的逻辑 不好用
 
@@ -128,6 +144,7 @@ function isCommentList() {
 }
 
 
+// 遍历调试下元素
 function xx(e, prefix) {
     console.log(prefix, e.id(), " - ", e.className(), "-", e.text())
     e.children().forEach(function(x) {
@@ -143,7 +160,19 @@ function findComments() {
     let views = className("android.support.v7.widget.RecyclerView").find().filter((e) => e.bounds().left === 0)
     let container = views[0]
 
+    // 怎么确定这是一个评论? 11.3.0 好像又失效了
+    // 没有 view group
     let comments = container.children().filter((e) => e.children().length === 1 && e.children()[0].className().indexOf("ViewGroup") > 0)
+    // 20201113 11.3.0 版本无法上面找不到，新结构是 评论 = FrameLayout && .children().length > 1
+    // 可能是版本的问题，后续分割版本信息
+    if (comments.length === 0) {
+        console.log("查找评论失败，尝试新的查找方式")
+        comments = container.children().filter((e) => {
+            return e.children().length > 1 && e.className().indexOf("FrameLayout") > 0
+        })
+    }
+
+
     // let comments = container.find(className("ViewGroup")).map((e) => {
     //     console.log("ViewGroup", e.id(), e.className())
     //     return e.parent()
@@ -200,11 +229,23 @@ function process({max, max_continue, max_wait_for, msgs, keywords, debug}) {
         let commentBtn = findCommentButton();
         if (!commentBtn) {
             toast("查找评论按钮失败~");
-            return;
-        }
+            sleep(1000);
 
-        // 点击评论按钮
-        commentBtn.click();
+            var right = 90
+            var bottom = 738
+            if (args.comment_btn_position) {
+                right = args.comment_btn_position.right || 90
+                bottom = args.comment_btn_position.bottom || 738
+            }
+            var sw = device.width - right
+            var sh = device.height - bottom // 2160 - 1377
+            toast("尝试使用坐标点击: "+ sw + " * " + sh)
+            click(sw, sh)
+            // TODO: 只能使用坐标点击 (屏幕宽度 - 右边距离, 屏幕高度 - 底边距离)
+        } else {
+            // 点击评论按钮
+            commentBtn.click();
+        }
         sleep(2000);
     }
 
