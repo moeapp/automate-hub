@@ -106,7 +106,7 @@ function findCommentButton() {
     let imgs = view.find(className("ImageView").descContains("评论"))
 
     console.log("一共找到" + imgs.length + "评论按钮")
-    toast("一共找到" + imgs.length + "评论按钮")
+    toast("一共找到 " + imgs.length + " 个可能的评论按钮~")
     sleep(2000)
 
     // 找到屏幕范围的那个按钮, TODO: 但是可能会判断失败啊
