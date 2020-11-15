@@ -110,14 +110,14 @@ function findCommentButton() {
     toast("一共找到" + imgs.length + "评论按钮")
     sleep(2000)
 
-    // 找到屏幕范围的那个按钮
-    let _x = imgs.filter((e) => {
-        let _b = e.bounds().bottom
-        return _b > 0 && _b < device.height
-    })
-
+    // 找到屏幕范围的那个按钮, TODO: 但是可能会判断失败啊
+    // let _x = imgs.filter((e) => {
+    //     let _b = e.bounds().bottom
+    //     return _b > 0 && _b < device.height
+    // })
     // let cmtbtn = _x.length > 0 ? _x[0].parent() : null
-    let cmtbtn = imgs.length > 0 ? imgs[imgs.length === 3 ? 1 : 0].parent() : null
+
+    let cmtbtn = imgs.length > 0 ? (imgs.length === 3 ? imgs[1].parent() : imgs[0].parent()) : null
 
 
     // TODO: 只要成功就可以记住这个数据
