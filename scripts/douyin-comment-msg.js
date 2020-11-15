@@ -78,8 +78,6 @@ function findCommentButton() {
 
     toast("查询评论按钮~")
 
-    let imgs = []
-
     let views = className("android.support.v4.view.ViewPager").find()
 
     // if (views.length === 0) {
@@ -103,8 +101,9 @@ function findCommentButton() {
     let view = _view[0]
     
     console.log("==> 找到 ViewPager =>", view.id())
+
     // 找出所有的图片
-    imgs = view.find(className("ImageView").descContains("评论"))
+    let imgs = view.find(className("ImageView").descContains("评论"))
 
     console.log("一共找到" + imgs.length + "评论按钮")
     toast("一共找到" + imgs.length + "评论按钮")
@@ -174,9 +173,9 @@ function _clickCommentBtnWithPos() {
 
     // var sw = device.width - (_pos.right || 90)
     // var sh = device.height - (_pos.bottom || 738) // 2160 - 1377
+    click(_pos.x, _pos.y)
     toast("尝试使用坐标点击: "+ _pos.x + " * " + _pos.y)
     sleep(2000)
-    click(_pos.x, _pos.y)
     return true
 }
 
@@ -283,7 +282,6 @@ function process({max, max_continue, max_wait_for, msgs, keywords, debug}) {
                 sleep(2000)
                 return 
             }
-            sleep(2000);
         } else {
             // 点击评论按钮
             commentBtn.click();
