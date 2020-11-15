@@ -82,23 +82,25 @@ function findCommentButton() {
 
     let views = className("android.support.v4.view.ViewPager").find()
 
-    if (views.length === 0) {
-        console.log("似乎不能找到 ViewPager, 尝试 DmViewPager")
-        views = className("android.support.v4.view.DmtViewPager").find()
-    }
+    // if (views.length === 0) {
+    //     console.log("似乎不能找到 ViewPager, 尝试 DmViewPager")
+    //     views = className("android.support.v4.view.DmtViewPager").find()
+    // }
 
-    let view = views.filter((e) => {
+    let _view = views.filter((e) => {
         let b = e.bounds()
         console.log(e.id(), e.className(), b.left, b.right, b.top, b.bottom)
         return b.right > 0
-    })[0]
+    })
 
     // 20201113 这里好像从搜索入口进来时或获取失败
     // 用 uiautomator 也抓不到
-    if (!view) {
+    if (_view.length === 0) {
         console.log("找不到 ViewPage! " + "viewpager 长度为" + views.length)
         return
     }
+
+    let view = _view[0]
     
     console.log("==> 找到 ViewPager =>", view.id())
     // 找出所有的图片
@@ -109,22 +111,22 @@ function findCommentButton() {
     sleep(2000)
 
     // 找到屏幕范围的那个按钮
-    var _x = imgs.filter((e) => {
-        var _b = e.bounds().bottom
+    let _x = imgs.filter((e) => {
+        let _b = e.bounds().bottom
         return _b > 0 && _b < device.height
     })
 
-    var cmtbtn = _x.length > 0 ? _x[0].parent() : null
+    let cmtbtn = _x.length > 0 ? _x[0].parent() : null
     // var cmtbtn = imgs.length > 0 ? imgs[imgs.length === 3 ? 1 : 0].parent() : null
 
 
     // TODO: 只要成功就可以记住这个数据
     if (cmtbtn) {
         // 保存按钮
-        var b = cmtbtn.bounds()
+        let b = cmtbtn.bounds()
 
-        var x = b.left + (b.right - b.left) / 2
-        var y = b.top + (b.bottom - b.top) / 2
+        let x = b.centerX() // b.left + (b.right - b.left) / 2
+        let y = b.centerY() //b.top + (b.bottom - b.top) / 2
         
         // if 
         store.put("main_comment_btn_pos", {x: x, y: y})
@@ -225,7 +227,7 @@ function findComments() {
 
     console.log("评论列表", container.id(), "大概数量:", comments.length)
 
-    xx(container, "=>")
+    // xx(container, "=>")
 
     return comments;
 }
