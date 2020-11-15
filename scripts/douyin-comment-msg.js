@@ -113,6 +113,8 @@ function findCommentButton() {
     // 找到屏幕范围的那个按钮
     let _x = imgs.filter((e) => {
         let _b = e.bounds().bottom
+        toast("位置"+e.bounds())
+        sleep(2000)
         return _b > 0 && _b < device.height
     })
 
