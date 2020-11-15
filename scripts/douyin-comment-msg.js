@@ -116,8 +116,8 @@ function findCommentButton() {
     // })
     // let cmtbtn = _x.length > 0 ? _x[0].parent() : null
 
-    let cmtbtn = imgs.length > 0 ? (imgs.length === 3 ? imgs[1].parent() : imgs[0].parent()) : null
-
+    // let cmtbtn = imgs.length > 0 ? (imgs.length === 3 ? imgs[1].parent() : imgs[0].parent()) : null
+    let cmtbtn = imgs.length === 3 ? imgs[1].parent() : imgs[0].parent();
 
     // TODO: 只要成功就可以记住这个数据
     if (cmtbtn) {
